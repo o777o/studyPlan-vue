@@ -42,10 +42,12 @@ onMounted(() => {
 
 <template>
   <Provider>
-    <RouterView v-slot="{ Component }">
-      <component :is="Component" v-if="isAuth" />
-      <FaNotAllowed v-else />
-    </RouterView>
+    <Suspense>
+      <RouterView v-slot="{ Component }">
+        <component :is="Component" v-if="isAuth" />
+        <FaNotAllowed v-else />
+      </RouterView>
+    </Suspense>
     <FaBackToTop />
     <FaToast />
     <FaNotification />

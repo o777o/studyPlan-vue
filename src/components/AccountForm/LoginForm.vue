@@ -3,7 +3,6 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { FormControl, FormField, FormItem, FormMessage } from '@/ui/shadcn/ui/form'
-import api from '@/api'
 
 defineOptions({
   name: 'LoginForm',
@@ -42,15 +41,15 @@ const form = useForm({
 const onSubmit = form.handleSubmit((values) => {
   loading.value = true
   userStore.login(values).then(() => {
-    const joinValues = {
-      ...values,
-      email: '',
-    }
-    const response = api.post(
-        `/auth/login`,
-        joinValues
-    );
-    console.log('登录响应:', response)
+    // const joinValues = {
+    //   ...values,
+    //   email: '',
+    // }
+    // const response = api.post(
+    //   `/auth/login`,
+    //   joinValues,
+    // )
+    // console.log('登录响应:', response)
     if (values.remember) {
       localStorage.setItem('login_account', values.account)
     }
@@ -63,11 +62,11 @@ const onSubmit = form.handleSubmit((values) => {
   })
 })
 
-function testAccount(account: string) {
-  form.setFieldValue('account', account)
-  form.setFieldValue('password', '123456')
-  onSubmit()
-}
+// function testAccount(account: string) {
+//   form.setFieldValue('account', account)
+//   form.setFieldValue('password', '123456')
+//   onSubmit()
+// }
 </script>
 
 <template>
@@ -84,7 +83,7 @@ function testAccount(account: string) {
       <FaTabs
         v-model="type" :list="[
           { label: '账号密码登录', value: 'default' },
-          { label: '扫码登录', value: 'qrcode' },
+          // { label: '扫码登录', value: 'qrcode' },
         ]" class="inline-flex"
       />
     </div>
@@ -136,7 +135,7 @@ function testAccount(account: string) {
           </FaButton>
         </div>
       </form>
-      <div class="mt-4 text-center -mb-4">
+      <!-- <div class="mt-4 text-center -mb-4">
         <FaDivider>演示账号一键登录</FaDivider>
         <div class="space-x-2">
           <FaButton variant="default" size="sm" plain @click="testAccount('admin')">
@@ -146,7 +145,7 @@ function testAccount(account: string) {
             test
           </FaButton>
         </div>
-      </div>
+      </div> -->
     </div>
     <div v-show="type === 'qrcode'">
       <div class="flex-col-center">

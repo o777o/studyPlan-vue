@@ -11,9 +11,11 @@ export const useUserStore = defineStore(
     const tabbarStore = useTabbarStore()
 
     const account = ref(localStorage.account ?? '')
+    const tokenHead = ref(localStorage.tokenHead ?? '')
     const token = ref(localStorage.token ?? '')
     const avatar = ref(localStorage.avatar ?? '')
     const permissions = ref<string[]>([])
+    const userId = ref<number | null>(localStorage.userId)
     const isLogin = computed(() => {
       if (token.value) {
         return true
@@ -27,12 +29,16 @@ export const useUserStore = defineStore(
       password: string
     }) {
       const res = await apiUser.login(data)
-      localStorage.setItem('account', res.data.account)
+      localStorage.setItem('account', res.data.user.username)
+      localStorage.setItem('tokenHead', res.data.tokenHead)
       localStorage.setItem('token', res.data.token)
-      localStorage.setItem('avatar', res.data.avatar)
-      account.value = res.data.account
+      localStorage.setItem('avatar', res.data.user.avatar ?? '')
+      localStorage.setItem('userId', String(res.data.user.id))
+      account.value = res.data.user.username
+      tokenHead.value = res.data.tokenHead
       token.value = res.data.token
-      avatar.value = res.data.avatar
+      avatar.value = res.data.user.avatar
+      userId.value = res.data.user.id
     }
 
     // 手动登出
@@ -94,8 +100,10 @@ export const useUserStore = defineStore(
     return {
       account,
       token,
+      tokenHead,
       avatar,
       permissions,
+      userId,
       isLogin,
       login,
       logout,

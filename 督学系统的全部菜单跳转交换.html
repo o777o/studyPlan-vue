@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>督学系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FFF9C4; /* 淡黄色 */
+            --primary-dark: #FFEB3B;
+            --secondary-color: #F5F5F5;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #E0E0E0;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --sidebar-width: 250px;
+            --topbar-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 极简;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 整体布局 - 左右结构 */
+        .app-container {
+            display: flex;
+            height: 100%;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-container {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .logo span {
+            color: var(--primary-dark);
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            background-color: var(--primary-color);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: var(--text-primary);
+            border-left: 4px solid var(--primary-dark);
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .user-info {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: var(--text-primary);
+            font-weight: bold;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部栏 */
+        .topbar {
+            height: var(--topbar-height);
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 90;
+        }
+
+        .breadcrumb {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '>';
+            margin: 0 10px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .notification-icon {
+            position: relative;
+            margin-right: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #FF5252;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-dropdown img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* 内容区域 */
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: var(--secondary-color);
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            height: 100%;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 首页概览样式 */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        /* 数据卡片 */
+        .data-card .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .data-card .card-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* 快捷入口 */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-link:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .quick-link i {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .quick-link span {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* 最近操作记录 */
+        .activity-list {
+            list-style: none;
+            margin-top: 24px;
+        }
+
+        .activity-item {
+            display: flex;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .activity-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-align: right;
+        }
+
+        /* 学习计划页面样式 */
+        .plan-container {
+            display: flex;
+            height: 100%;
+            gap: 24px;
+        }
+
+        .plan-left {
+            width: 25%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .plan-center {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-right {
+            width: 25%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-plan-btn {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-plan-btn i {
+            margin-right: 8px;
+        }
+
+        .add-plan-btn:hover {
+            background-color: #fbc02d;
+        }
+
+        .add-task-btn {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-task-btn:hover {
+            background-color: #fbc02d;
+        }
+
+        /* 树状计划列表 */
+        .plan-tree {
+            list-style: none;
+        }
+
+        .plan-tree li {
+            margin-bottom: 8px;
+        }
+
+        .tree-item {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .tree-item:hover {
+            background-color: var(--primary-color);
+        }
+
+        .tree-item.active {
+            background-color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .tree-item i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        .tree-children {
+            margin-left: 24px;
+            margin-top: 8px;
+        }
+
+        .tree-children .tree-item {
+            padding: 8px 10px;
+        }
+
+        /* 日历区域 */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            background-color: var(--primary-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            flex: 1;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .calendar-day {
+            height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            overflow-y: auto;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: var(--primary-color);
+        }
+
+        .calendar-day.empty {
+            background-color: #f9f9f9;
+            border: none;
+        }
+
+        .calendar-day.current {
+            background-color: var(--primary-color);
+        }
+
+        .calendar-day-header, .calendar-day {
+            font-size: 14px;
+        }
+
+        .day-number {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .calendar-task {
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            padding: 4px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .calendar-task:hover {
+            background-color: #bbdefb;
+        }
+
+        /* 任务状态指示器 */
+        .task-status-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-completed {
+            background-color: #4CAF50;
+        }
+
+        .status-in-progress {
+            background-color: #FFC107;
+        }
+
+        .status-not-started {
+            background-color: #2196F3;
+        }
+
+        .status-overdue {
+            background-color: #F44336;
+        }
+
+        .task-count {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            font-size: 12px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        /* 任务列表 */
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            background-color: #f9f9f9;
+            border-left: 4px solid var(--primary-dark);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-weight: 500;
+        }
+
+        .task-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .task-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .task-progress {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-dark);
+            border-radius: 3px;
+        }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .complete-btn {
+            background-color: var(--primary-dark);
+            border: none;
+            border-radius: 4px;
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .complete-btn:hover {
+            background-color: #fbc02d;
+        }
+
+        /* 树洞鸭聊天页面样式 */
+        .chat-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background-color: var(--primary-color);
+            margin-left: auto;
+        }
+
+        .message.bot {
+            background-color: #e3f2fd;
+            margin-right: auto;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .send-btn {
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            background-color: #fbc02d;
+        }
+
+        /* 错题本页面样式 */
+        .wrong-questions-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .question-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .question-item:hover {
+            background-color: var(--primary-color);
+        }
+
+        .question-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .question-content {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .question-answer {
+            background-color: #e8f5e9;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .question-item.expanded .question-answer {
+            display: block;
+        }
+
+        .question-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .filter-select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .plan-container {
+                flex-direction: column;
+            }
+            
+            .plan-left, .plan-center, .plan-right {
+                width: 100%;
+            }
+            
+            .plan-center {
+                min-height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            .logo-text, .nav-text, .user-details {
+                display: none;
+            }
+            .logo-container {
+                padding: 20px 10px;
+            }
+            .nav-item {
+                justify-content: center;
+                padding: 16px 0;
+            }
+            .nav-item i {
+                margin-right: 0;
+            }
+            .user-info {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span class="logo-text">督学系统</span>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <div class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">首页概览</span>
+                </div>
+                <div class="nav-item" data-page="plan">
+                    <i class="fas fa-book"></i>
+                    <span class="nav-text">学习计划</span>
+                </div>
+                <div class="nav-item" data-page="chat">
+                    <i class="fas fa-comments"></i>
+                    <span class="nav-text">树洞鸭聊天</span>
+                </div>
+                <div class="nav-item" data-page="wrong-questions">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="nav-text">错题本</极简>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">张</div>
+                <div class="user-details">
+                    <div class="user-name">张同学</div>
+                    <div class="user-role">学生用户</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部栏 -->
+            <div class="topbar">
+                <div class="breadcrumb">
+                    <div class="breadcrumb-item">首页</div>
+                    <div class="breadcrumb-item active">概览</div>
+                </div>
+                
+                <div class="topbar-actions">
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-dropdown">
+                        <div class="user-avatar">张</div>
+                        <span>张同学</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="content">
+                <!-- 首页概览页面 -->
+                <div class="page active" id="dashboard-page">
+                    <div class="dashboard-container">
+                        <div class="card data-card">
+                            <div class="card-header">
+                                <div class="card-title">学习计划</div>
+                                <div class="card-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                            </div>
+                            <div class="card-value">5</div>
+                            <div class="card-label">正在进行的学习计划</div>
+                        </div>
+                        
+                        <div class="card data-card">
+                            <div class="card-header">
+                                <div class="card-title">任务完成率</div>
+                                <div class="card-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="card-value">78%</div>
+                            <div class="card-label">本周任务完成率</div>
+                        </div>
+                        
+                        <div class="card data-card">
+                            <div class="card-header">
+                                <div class="card-title">学习时长</div>
+                                <div class="card-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <div class="card-value">32小时</div>
+                            <div class="card-label">本周累计学习时长</div>
+                        </div>
+                        
+                        <div class="card data-card">
+                            <div class="card-header">
+                                <div class="card-title">错题记录</div>
+                                <div class="card-icon">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                            </div>
+                            <div class="card-value">24</div>
+                            <div class="card-label">本周错题数量</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 快捷入口 -->
+                    <div class="quick-links">
+                        <div class="quick-link">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>新建学习计划</span>
+                        </div>
+                        <div class="quick-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>今日任务</span>
+                        </div>
+                        <div class="quick-link">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>树洞鸭聊天</span>
+                        </div>
+                        <div class="quick-link">
+                            <i class="fas fa-book"></i>
+                            <span>错题本</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 最近操作记录 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">最近操作记录</div>
+                        </div>
+                        <ul class="activity-list">
+                            <li class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">完成任务：行测模拟题</div>
+                                    <div class="activity-desc">公务员考试行测模拟练习，得分85分</div>
+                                </div>
+                                <div class="activity-time">10:20</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">添加错题</div>
+                                    <div class="activity-desc">在"逻辑推理"部分添加了2道错题</div>
+                                </div>
+                                <div class="activity-time">09:45</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">与树洞鸭对话</div>
+                                    <div class="activity-desc">咨询了关于学习压力的问题</div>
+                                </div>
+                                <div class="activity-time">昨天 20:15</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">调整学习计划</div>
+                                    <div class="activity-desc">修改了"公务员考试"计划的时间安排</div>
+                                </div>
+                                <div class="activity-time">昨天 18:30</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 学习计划页面 -->
+                <div class="page" id="plan-page">
+                    <div class="plan-container">
+                        <!-- 左侧计划树 -->
+                        <div class="plan-left">
+                            <div class="section-title">我的学习计划</div>
+                            <button class="add-plan-btn">
+                                <i class="fas fa-plus"></i> 添加学习计划
+                            </button>
+                            <ul class="plan-tree">
+                                <li>
+                                    <div class="tree-item active">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>2025年学习计划</span>
+                                    </div>
+                                    <ul class="tree-children">
+                                        <li>
+                                            <div class="tree-item">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>1月计划</span>
+                                            </div>
+                                            <ul class="tree-children">
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第1周 (1.1-1.7)</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第2周 (1.8-1.14)</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <div class="tree-item">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>2月计划</span>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="tree-item">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>9月计划</span>
+                                            </div>
+                                            <ul class="tree-children">
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第36周 (9.1-9.7)</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第37周 (9.8-9.14)</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第38周 (9.15-9.21)</span>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="tree-item">
+                                                        <i class="fas fa-calendar-week"></i>
+                                                        <span>第39周 (9.22-9.28)</span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="tree-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>2024年学习计划</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 中间日历区域 -->
+                        <div class="plan-center">
+                            <div class="calendar-header">
+                                <div class="calendar-title">2025年9月</div>
+                                <div class="calendar-nav">
+                                    <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                                    <button id="today">今天</button>
+                                    <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                            
+                            <div class="calendar-grid">
+                                <div class="calendar-day-header">周日</div>
+                                <div class="calendar-day-header">周一</div>
+                                <div class="calendar-day-header">周二</div>
+                                <div class="calendar-day-header">周三</div>
+                                <div class="calendar-day-header">周四</div>
+                                <div class="calendar-day-header">周五</div>
+                                <div class="calendar-day-header">周六</div>
+                                
+                                <!-- 日历占位符 -->
+                                <div class="calendar-day empty"></div>
+                                <div class="calendar-day empty"></div>
+                                <div class="calendar-day">
+                                    <div class="day-number">1</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/3</div>
+                                    <div class="calendar-task">行测练习</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">2</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">3</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/4</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">4</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">1/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">5</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">3/3</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                
+                                <div class="calendar-day">
+                                    <div class="day-number">6</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                    <div class="calendar-task">行测练习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">7</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/2</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">8</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/1</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">9</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">0/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">10</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">1/1</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">11</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                    <div class="calendar-task">行测练习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">12</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/2</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                
+                                <div class="calendar-day">
+                                    <div class="day-number">13</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/1</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">14</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">0/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">15</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">1/1</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">16</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                    <div class="calendar-task">行测练习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">17</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/2</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">18</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/1</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">19</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">0/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar极简>
+                                </div>
+                                
+                                <div class="calendar-day">
+                                    <div class="day-number">20</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">1/1</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">21</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                   极简 class="calendar-task">行测练习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">22</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/2</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">23</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/1</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">24</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">0/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">25</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">1/1</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">26</div>
+                                    <div class="task-status-indicator status-in-progress"></div>
+                                    <div class="task-count">1/2</div>
+                                    <div class="calendar-task">行测练习</div>
+                                </div>
+                                
+                                <div class="calendar-day">
+                                    <div class="day-number">27</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">2/2</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">28</div>
+                                    <div class="task-status-indicator status-not-started"></div>
+                                    <div class="task-count">0/1</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">29</div>
+                                    <div class="task-status-indicator status-overdue"></div>
+                                    <div class="task-count">0/3</div>
+                                    <div class="calendar-task">行测模拟</div>
+                                    <div class="calendar-task">申论写作</div>
+                                </div>
+                                <div class="calendar-day">
+                                    <div class="day-number">30</div>
+                                    <div class="task-status-indicator status-completed"></div>
+                                    <div class="task-count">1/1</div>
+                                    <div class="calendar-task">错题复习</div>
+                                </div>
+                                <div class="calendar-day empty"></div>
+                                <div class="calendar-day empty"></div>
+                                <div class="calendar-day empty"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧任务列表 -->
+                        <div class="plan-right">
+                            <div class="section-title">
+                                2025年9月4日任务
+                                <button class="add-task-btn">
+                                    <i class="fas fa-plus"></i> 添加任务
+                                </button>
+                            </div>
+                            <ul class="task-list">
+                                <li class="task-item">
+                                    <div class="task-header">
+                                        <div class="task-title">行测模拟练习</div>
+                                        <div class="task-time">09:00-10:30</div>
+                                    </div>
+                                    <div class="task-content">
+                                        完成一套行测模拟题，包含言语理解、数量关系、判断推理和资料分析四个部分
+                                    </div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar" style="width: 60%"></div>
+                                    </div>
+                                    <div class="task-actions">
+                                        <button class="complete-btn">完成任务</button>
+                                    </div>
+                                </li>
+                                <li class="task-item">
+                                    <div class="task-header">
+                                        <div class="task-title">申论写作练习</div>
+                                        <div class="task-time">14:00-15:30</div>
+                                    </div>
+                                    <div class="task-content">
+                                        根据给定材料，完成一篇800字左右的申论文章
+                                    </div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar" style="width: 30%"></div>
+                                    </div>
+                                    <div class="task-actions">
+                                        <button class="complete-btn">完成任务</button>
+                                    </div>
+                                </li>
+                                <li class="task-item">
+                                    <div class="task-header">
+                                        <div class="task-title">错题复习</div>
+                                        <div class="task-time">19:00-20:00</div>
+                                    </div>
+                                    <div class="task-content">
+                                        复习本周错题本中的10道重点题目
+                                    </div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar" style="width: 20%"></div>
+                                    </div>
+                                    <div class="task-actions">
+                                        <button class="complete-btn">完成任务</button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 树洞鸭聊天页面 -->
+                <div class="page" id="chat-page">
+                    <div class="chat-container">
+                        <div class="section-title">树洞鸭聊天</div>
+                        <div class="chat-messages">
+                            <div class="message bot">
+                                <div class="message-content">
+                                    你好！我是树洞鸭，有什么烦恼都可以告诉我哦～
+                                </div>
+                                <div class="message-time">09:05</div>
+                            </div>
+                            <div class="message user">
+                                <div class="message-content">
+                                    最近学习压力好大，感觉时间不够用
+                                </div>
+                                <div class="message-time">09:06</div>
+                            </div>
+                            <div class="message bot">
+                                <div class="message-content">
+                                    我理解你的感受。学习压力大是正常的，重要的是找到适合自己的节奏。可以尝试把大目标分解成小任务，每天完成一点点，这样压力会小很多哦！
+                                </div>
+                                <div class="message-time">09:06</div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <input type="text" class="chat-input" placeholder="输入消息...">
+                            <button class="send-btn">发送</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 错题本页面 -->
+                <div class="page" id="wrong-questions-page">
+                    <div class="wrong-questions-container">
+                        <div class="section-title">错题本</div>
+                        <div class="question-filter">
+                            <select class="filter-select">
+                                <option value="all">所有科目</option>
+                                <option value="math">数学</option>
+                                <option value="english">英语</option>
+                                <option value="logic">逻辑推理</option>
+                            </select>
+                            <select class="filter-select">
+                                <option value="all">所有难度</option>
+                                <option value="easy">简单</option>
+                                <option value="medium">中等</option>
+                                <option value="hard">困难</option>
+                            </select>
+                        </div>
+                        <div class="question-list">
+                            <div class="question-item">
+                                <div class="question-title">1. 下列选项中，与"苹果"关系最不相似的是：</div>
+                                <div class="question-content">
+                                    A. 香蕉 B. 橙子 C. 土豆 D. 葡萄
+                                </div>
+                                <div class="question-answer">
+                                    <strong>正确答案：</strong> C. 土豆<br>
+                                    <strong>解析：</strong> 苹果属于水果类，香蕉、橙子、葡萄都是水果，而土豆属于蔬菜类，所以关系最不相似。
+                                </div>
+                            </div>
+                            <div class="question-item">
+                                <div class="question-title">2. 某公司去年有员工830人，今年男员工人数比去年减少6%，女员工人数比去年增加5%，员工总数比去年增加3人。问今年男员工有多少人？</div>
+                                <div class="question-content">
+                                    A. 329 B. 350 C. 371 D. 504
+                                </div>
+                                <div class="question-answer">
+                                    <strong>正确答案：</strong> A. 329<br>
+                                    <strong>解析：</strong> 设去年男员工人数为x，女员工人数为y，则x+y=830。今年男员工人数为0.94x，女员工人数为1.05y，总人数为0.94x+1.05y=833。解方程组得x=350，y=480，所以今年男员工人数为0.94×350=329。
+                                </div>
+                            </div>
+                            <div class="question-item">
+                                <div class="question-title">3. 下列哪个选项不是我国四大发明之一？</div>
+                                <div class="question-content">
+                                    A. 造纸术 B. 指南针 C. 火药 D. 算盘
+                                </div>
+                                <div class="question-answer">
+                                    <strong>正确答案：</strong> D. 算盘<br>
+                                    <strong>解析：</strong> 我国四大发明是指造纸术、指南针、火药和印刷术，算盘虽然也是古代重要发明，但不属于四大发明。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换功能
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除所有active状态
+                document.querySelectorAll('.nav-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+                
+                // 添加当前active状态
+                this.classList.add('active');
+                
+                // 切换页面
+                const pageId = this.getAttribute('data-page');
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(`${pageId}-page`).classList.add('active');
+                
+                // 更新面包屑导航
+                const breadcrumb = document.querySelector('.breadcrumb');
+                breadcrumb.innerHTML = `
+                    <div class="breadcrumb-item">首页</div>
+                    <div class="breadcrumb-item active">${this.querySelector('.nav-text').textContent}</div>
+                `;
+            });
+        });
+        
+        // 日历导航
+        document.getElementById('prev-month').addEventListener('click', function() {
+            alert('切换到上个月');
+        });
+        
+        document.getElementById('next-month').addEventListener('click', function() {
+            alert('切换到下个月');
+        });
+        
+        document.getElementById('today').addEventListener('click', function() {
+            alert('回到今天');
+        });
+        
+        // 日历日期点击
+        document.querySelectorAll('.calendar-day:not(.empty)').forEach(day => {
+            day.addEventListener('click', function() {
+                // 移除所有当前日期样式
+                document.querySelectorAll('.calendar-day').forEach(d => {
+                    d.classList.remove('current');
+                });
+                
+                // 添加当前日期样式
+                this.classList.add('current');
+                
+                // 更新右侧任务列表标题
+                document.querySelector('.section-title').textContent = 
+                    `2025年9月${this.querySelector('.day-number').textContent.trim()}日任务`;
+            });
+        });
+        
+        // 错题本展开/收起
+        document.querySelectorAll('.question-item').forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+            });
+        });
+        
+        // 树洞鸭发送消息
+        document.querySelector('.send-btn').addEventListener('click', function() {
+            const input = document.querySelector('.chat-input');
+            const message = input.value.trim();
+            if (message) {
+                const chatMessages = document.querySelector('.chat-messages');
+                const now = new Date();
+                const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                // 添加用户消息
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user';
+                userMessage.innerHTML = `
+                    <div class="message-content">${message}</div>
+                    <div class="message-time">${timeString}</div>
+                `;
+                chatMessages.appendChild(userMessage);
+                
+                // 清空输入框
+                input.value = '';
+                
+                // 添加自动回复
+                setTimeout(() => {
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'message bot';
+                    botMessage.innerHTML = `
+                        <div class="message-content">我理解你的感受。学习压力大是正常的，重要的是找到适合自己的节奏。可以尝试把大目标分解成小任务，每天完成一点点，这样压力会小很多哦！</div>
+                        <div class="message-time">${timeString}</div>
+                    `;
+                    chatMessages.appendChild(botMessage);
+                    
+                    // 滚动到底部
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+                
+                // 滚动到底部
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+        
+        // 初始化当前日期
+        document.querySelector('.calendar-day').classList.add('current');
+    </script>
+</body>
+</html>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
+import { toast } from 'vue-sonner'
 import * as z from 'zod'
+import api from '@/api/modules/user'
 import { FormControl, FormField, FormItem, FormMessage } from '@/ui/shadcn/ui/form'
+import { phoneRegex } from '@/utils'
 
 defineOptions({
   name: 'RegisterForm',
@@ -22,7 +25,22 @@ const loading = ref(false)
 const form = useForm({
   validationSchema: toTypedSchema(
     z.object({
-      account: z.string().min(1, '请输入用户名'),
+      account: z.string().min(1, '请输入用户名').refine(async (val) => {
+        if (!val) {
+          return false
+        }
+        // 异步接口校验用户名是否存在
+        const { data } = await api.checkUsername(val)
+        return !data
+      }, { message: '用户名已存在' }),
+      phone: z.string().regex(phoneRegex, '请输入有效的手机号').refine(async (val) => {
+        if (!val || !phoneRegex.test(val)) {
+          return false
+        }
+        // 异步接口校验用户名是否存在
+        const { data } = await api.checkPhone(val)
+        return !data
+      }, { message: '手机号已被注册' }),
       captcha: z.string().min(6, '请输入验证码'),
       password: z.string().min(1, '请输入密码').min(6, '密码长度为6到18位').max(18, '密码长度为6到18位'),
       checkPassword: z.string().min(1, '请再次输入密码'),
@@ -33,15 +51,53 @@ const form = useForm({
   ),
   initialValues: {
     account: props.account ?? '',
+    phone: '',
     captcha: '',
     password: '',
     checkPassword: '',
   },
 })
-const onSubmit = form.handleSubmit((values) => {
+const onSubmit = form.handleSubmit(async (values) => {
   loading.value = true
-  emits('onRegister', values.account)
+  try {
+    await api.register({
+      phone: values.phone,
+      smsCode: values.captcha,
+      username: values.account,
+      password: values.password,
+      confirmPassword: values.checkPassword,
+      email: null,
+      nickname: '',
+    })
+    toast.success('注册成功！')
+    emits('onRegister', values.account)
+  }
+  catch (error) {
+    console.error(error)
+  }
+  finally {
+    loading.value = false
+  }
 })
+
+const countdown = ref(0)
+const countdownInterval = ref(Number.NaN)
+async function handleSendCaptcha() {
+  const { valid } = await form.validateField('phone')
+  if (!valid) {
+    return
+  }
+
+  await api.sendRegisterCode(form.values.phone!)
+
+  countdown.value = 60
+  countdownInterval.value = window.setInterval(() => {
+    countdown.value--
+    if (countdown.value === 0) {
+      clearInterval(countdownInterval.value)
+    }
+  }, 1000)
+}
 </script>
 
 <template>
@@ -58,7 +114,14 @@ const onSubmit = form.handleSubmit((values) => {
       <FormField v-slot="{ componentField, errors }" name="account">
         <FormItem class="relative pb-6 space-y-0">
           <FormControl>
-            <FaInput type="text" placeholder="请输入用户名" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
+            <FaInput
+              type="text"
+              placeholder="请输入用户名"
+              class="w-full"
+              :class="errors.length && 'border-destructive'"
+              v-bind="componentField"
+              @blur="form.validateField('account')"
+            />
           </FormControl>
           <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
             <FormMessage class="absolute bottom-1 text-xs" />
@@ -88,6 +151,33 @@ const onSubmit = form.handleSubmit((values) => {
           </Transition>
         </FormItem>
       </FormField>
+      <!-- 新增手机号表单项 -->
+      <FormField v-slot="{ componentField, errors }" name="phone">
+        <FormItem class="relative pb-6 space-y-0">
+          <FormControl>
+            <FaInput type="text" placeholder="请输入手机号" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
+          </FormControl>
+          <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
+            <FormMessage class="absolute bottom-1 text-xs" />
+          </Transition>
+        </FormItem>
+      </FormField>
+      <!-- 新增手机验证码表单项 -->
+      <div class="flex-start-between gap-2">
+        <FormField v-slot="{ componentField, value, setValue }" name="captcha">
+          <FormItem class="relative pb-6 space-y-0">
+            <FormControl>
+              <FaPinInput :model-value="value" :name="componentField.name" :length="6" class="border-destructive" @update:model-value="val => setValue(val)" />
+            </FormControl>
+            <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
+              <FormMessage class="absolute bottom-1 text-xs" />
+            </Transition>
+          </FormItem>
+        </FormField>
+        <FaButton type="button" variant="outline" size="lg" :disabled="countdown > 0" class="flex-1 px-4" @click="handleSendCaptcha">
+          {{ countdown === 0 ? '发送验证码' : `${countdown} 秒后可重新发送` }}
+        </FaButton>
+      </div>
       <FaButton :loading="loading" size="lg" class="mt-4 w-full" type="submit">
         注册
       </FaButton>

@@ -21,6 +21,15 @@
 
   /* 滚动条颜色 */
   --scrollbar-color: 240 5.9% 90%;
+  --primary-color: 54 100% 62%; /* 淡黄色 */
+  --primary-dark: #ffeb3b;
+  --secondary-color: #f5f5f5;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --border-color: #e0e0e0;
+  --card-shadow: 0 4px 12px rgb(0 0 0 / 8%);
+  --sidebar-width: 250px;
+  --topbar-height: 60px;
 
   &.dark {
     color-scheme: dark;

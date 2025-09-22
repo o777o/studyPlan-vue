@@ -10,3 +10,5 @@ export function cn(...inputs: ClassValue[]) {
 export function resolveRoutePath(basePath?: string, routePath?: string) {
   return basePath ? path.resolve(basePath, routePath ?? '') : routePath ?? ''
 }
+
+export const phoneRegex = /^1[3-9]\d{9}$/

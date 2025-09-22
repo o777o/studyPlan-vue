@@ -6,7 +6,7 @@ import MultilevelMenuExample from './modules/multilevel.menu.example'
 
 // 固定路由（默认路由）
 const constantRoutes: RouteRecordRaw[] = [
-  
+
   {
     path: '/login',
     name: 'login',
@@ -59,9 +59,44 @@ const systemRoutes: RouteRecordRaw[] = [
 
 // 动态路由（异步路由、导航栏路由）
 const asyncRoutes: Route.recordMainRaw[] = [
+  // {
+  //   meta: {
+  //     title: '学习管理',
+  //     icon: 'i-ant-design:book-outlined',
+  //   },
+  //   children: [
+  //     {
+  //       path: '/study-plan',
+  //       name: 'StudyPlan',
+  //       component: () => import('@/views/StudyPlan.vue'),
+  //       meta: {
+  //         title: '学习计划',
+  //         icon: 'i-ant-design:calendar-outlined',
+  //       },
+  //     },
+  //     {
+  //       path: '/chat',
+  //       name: 'Chat',
+  //       component: () => import('@/views/Chat.vue'),
+  //       meta: {
+  //         title: '树洞鸭聊天',
+  //         icon: 'i-ant-design:message-outlined',
+  //       },
+  //     },
+  //     {
+  //       path: '/wrong-questions',
+  //       name: 'WrongQuestions',
+  //       component: () => import('@/views/WrongQuestions.vue'),
+  //       meta: {
+  //         title: '错题本',
+  //         icon: 'i-ant-design:book-outlined',
+  //       },
+  //     },
+  //   ],
+  // },
   {
     meta: {
-      title: '演示',
+      title: '仪表盘',
       icon: 'i-uim:box',
     },
     children: [

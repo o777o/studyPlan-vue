@@ -27,7 +27,7 @@ api.interceptors.request.use(
     // 设置请求头
     if (request.headers) {
       if (userStore.isLogin) {
-        request.headers.Token = userStore.token
+        request.headers.Authorization = userStore.tokenHead + userStore.token
       }
     }
     // 是否将 POST 请求参数进行字符串化处理
@@ -44,7 +44,7 @@ api.interceptors.request.use(
 function handleError(error: any) {
   if (error.status === 401) {
     useUserStore().requestLogout()
-    throw error
+    // throw error
   }
   let message = error.message
   if (message === 'Network Error') {
@@ -53,8 +53,11 @@ function handleError(error: any) {
   else if (message.includes('timeout')) {
     message = '接口请求超时'
   }
-  else if (message.includes('Request failed with status code')) {
-    message = `接口${message.substr(message.length - 3)}异常`
+  else if (message.includes('timeout')) {
+    message = '接口请求超时'
+  }
+  else if (error.response?.data?.message) {
+    message = error.response.data.message
   }
   toast.error('Error', {
     description: message,
@@ -71,16 +74,26 @@ api.interceptors.response.use(
      * 请求出错时 error 会返回错误信息
      */
     if (typeof response.data === 'object') {
-      if (response.data.status === 1) {
-        if (response.data.error !== '') {
-          toast.warning('Warning', {
-            description: response.data.error,
-          })
-          return Promise.reject(response.data)
-        }
-      }
-      else {
+      // if (response.data.status === 1) {
+      //   if (response.data.error !== '') {
+      //     toast.warning('Warning', {
+      //       description: response.data.error,
+      //     })
+      //     return Promise.reject(response.data)
+      //   }
+      // }
+      // else {
+      //   useUserStore().requestLogout()
+      // }
+      if (response.data.code === 401) {
         useUserStore().requestLogout()
+        return Promise.reject(response.data)
+      }
+      else if (response.data.code !== 200) {
+        toast.warning('Warning', {
+          description: response.data.message,
+        })
+        return Promise.reject(response.data)
       }
       return Promise.resolve(response.data)
     }

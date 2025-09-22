@@ -1,5 +1,10 @@
+/* add fontawesome core */
+import { library } from '@fortawesome/fontawesome-svg-core'
+/* import all the icons in Free Solid, Free Regular, and Brands styles */
+import { fas } from '@fortawesome/free-solid-svg-icons'
 // 加载 iconify 图标
 import { downloadAndInstall } from '@/iconify'
+
 import icons from '@/iconify/index.json'
 // 自定义指令
 import directive from '@/utils/directive'
@@ -28,5 +33,6 @@ if (icons.isOfflineUse) {
     downloadAndInstall(info)
   }
 }
+library.add(fas)
 
 app.mount('#app')

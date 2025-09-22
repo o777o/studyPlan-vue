@@ -14,12 +14,12 @@ const globalSettingsDefault: RecursiveRequired<Settings.all> = {
     routeBaseOn: 'frontend',
   },
   home: {
-    enable: true,
+    enable: false,
     title: '主页',
     fullPath: '/',
   },
   layout: {
-    enableMobileAdaptation: false,
+    enableMobileAdaptation: true,
   },
   menu: {
     baseOn: 'frontend',
