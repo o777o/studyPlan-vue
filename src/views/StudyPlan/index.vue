@@ -5,17 +5,27 @@ meta:
 </route>
 
 <script setup lang="ts">
-import type { Plan } from '@/api/modules/studyPlan'
+import type { PlanTask, PlanTime } from '@/api/modules/studyPlan'
 import { ArrowLeft, ArrowRight, Calendar, Plus } from '@element-plus/icons-vue'
 import { dayjs, ElMessage, ElMessageBox } from 'element-plus'
 import { reactive, ref } from 'vue'
 import api from '@/api/modules/studyPlan'
 
-// 当前选中的计划
-const selectedPlan = ref('2025年学习计划')
-
 // 计划树数据
-const planTree = ref<Plan[]>([])
+const planTree = ref<PlanTime[]>([])
+// 当前默认展开的节点
+const currentNodeKey = ref(0)
+
+// 当前月份任务列表
+const tasks = ref<PlanTask[]>([])
+
+// 选择计划
+function selectPlan(data: PlanTime | PlanTime['plans'][number]) {
+  if (!Object.prototype.hasOwnProperty.call(data, 'id')) {
+    return void 0
+  }
+  getPlan((data as PlanTime['plans'][number]).id)
+}
 
 // 当前月份
 const currentMonth = ref(new Date())
@@ -27,6 +37,21 @@ const value = ref(new Date())
 async function getPlanTimeList() {
   const res = await api.planTimeList()
   planTree.value = res.data
+  for (const planTime of planTree.value) {
+    for (const plan of planTime.plans) {
+      const currentMonth = plan.startDate[1]
+      if (currentMonth === value.value.getMonth() + 1) {
+        currentNodeKey.value = plan.id
+        getPlan(plan.id)
+      }
+    }
+  }
+}
+
+// 根据计划ID获取任务详情
+async function getPlan(planId: number) {
+  const { data } = await api.byPlan(planId)
+  tasks.value = data || []
 }
 
 // 日历数据
@@ -178,11 +203,6 @@ function goToToday() {
   generateCalendar()
 }
 
-// 选择计划
-function selectPlan(planId: string) {
-  selectedPlan.value = planId
-}
-
 // 打开添加计划弹窗
 function openAddPlanDialog() {
   addPlanDialogVisible.value = true
@@ -261,18 +281,25 @@ await getPlanTimeList()
         </el-button>
 
         <el-tree
+          class="plan-tree"
+          node-key="id"
           :data="planTree"
           :props="{ children: 'plans' }"
-          :default-expanded-keys="['2025']"
-          :current-node-key="selectedPlan"
+          :default-expanded-keys="[currentNodeKey]"
           @node-click="selectPlan"
         >
-          <template #default="{ data }">
+          <template #default="{ data }: { data: PlanTime | PlanTime['plans'][number] }">
             <div class="tree-node">
-              <el-icon class="tree-icon">
+              <el-icon color="#333">
                 <Calendar />
               </el-icon>
-              <span>{{ data.name }}</span>
+              <span>
+                {{
+                  Object.prototype.hasOwnProperty.call(data, 'id')
+                    ? `${(data as PlanTime['plans'][number]).startDate[1]}月计划`
+                    : data.title
+                }}
+              </span>
             </div>
           </template>
         </el-tree>
@@ -567,10 +594,6 @@ await getPlanTimeList()
   align-items: center;
 }
 
-.tree-icon {
-  color: #409eff;
-}
-
 .calendar-header {
   display: flex;
   align-items: center;
@@ -810,5 +833,10 @@ await getPlanTimeList()
   .plan-center {
     min-height: 500px;
   }
+}
+
+.plan-tree {
+  --el-tree-node-hover-bg-color: hsl(var(--primary));
+  --el-tree-node-content-height: 44px;
 }
 </style>
