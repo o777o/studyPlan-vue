@@ -66,4 +66,9 @@ export default {
     const userStore = useUserStore()
     return api.get<PlanTask[]>(`api/tasks/by-plan/${planId}`, { headers: { 'X-User-Id': userStore.userId } })
   },
+  // 根据时间获取任务详情
+  byDate: (date: string) => {
+    const userStore = useUserStore()
+    return api.get<PlanTask[]>('api/tasks/by-date', { params: { date }, headers: { 'X-User-Id': userStore.userId } })
+  },
 }

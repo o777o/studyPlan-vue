@@ -6,7 +6,7 @@ meta:
 
 <script setup lang="ts">
 import type { PlanTask, PlanTime } from '@/api/modules/studyPlan'
-import { ArrowLeft, ArrowRight, Calendar, Plus } from '@element-plus/icons-vue'
+import { Calendar, Plus } from '@element-plus/icons-vue'
 import { dayjs, ElMessage, ElMessageBox } from 'element-plus'
 import { reactive, ref } from 'vue'
 import api from '@/api/modules/studyPlan'
@@ -18,13 +18,15 @@ const currentNodeKey = ref(0)
 
 // 当前月份任务列表
 const tasks = ref<PlanTask[]>([])
+// 当前天任务列表
+const todayTasks = ref<PlanTask[]>([])
 
 // 选择计划
 function selectPlan(data: PlanTime | PlanTime['plans'][number]) {
   if (!Object.prototype.hasOwnProperty.call(data, 'id')) {
     return void 0
   }
-  getPlan((data as PlanTime['plans'][number]).id)
+  getPlan((data as PlanTime['plans'][number]))
 }
 
 // 当前月份
@@ -42,16 +44,38 @@ async function getPlanTimeList() {
       const currentMonth = plan.startDate[1]
       if (currentMonth === value.value.getMonth() + 1) {
         currentNodeKey.value = plan.id
-        getPlan(plan.id)
+        getPlan(plan)
       }
     }
   }
 }
 
 // 根据计划ID获取任务详情
-async function getPlan(planId: number) {
-  const { data } = await api.byPlan(planId)
+async function getPlan(plan: PlanTime['plans'][number]) {
+  value.value = new Date(plan.startDate.join(','))
+  const [{ data }] = await Promise.all([api.byPlan(plan.id), getTasksbyDate()])
   tasks.value = data || []
+}
+
+watch(value, (newVal, oldVal) => {
+  if (newVal.getMonth() !== oldVal.getMonth()) {
+    for (const planTime of planTree.value) {
+      for (const plan of planTime.plans) {
+        const currentMonth = plan.startDate[1]
+        if (currentMonth === newVal.getMonth() + 1) {
+          currentNodeKey.value = plan.id
+          getPlan(plan)
+        }
+      }
+    }
+  }
+})
+
+// 根据时间获取任务详情
+async function getTasksbyDate() {
+  const { data } = await api.byDate(dayjs(value.value).format('YYYY-MM-DD'))
+  // console.log(data)
+  todayTasks.value = data || []
 }
 
 // 日历数据
@@ -177,31 +201,31 @@ function generateCalendar() {
 }
 
 // 切换月份
-function changeMonth(direction: 'prev' | 'next') {
-  if (direction === 'prev') {
-    currentMonthIndex.value--
-    if (currentMonthIndex.value < 0) {
-      currentMonthIndex.value = 11
-      currentYear.value--
-    }
-  }
-  else {
-    currentMonthIndex.value++
-    if (currentMonthIndex.value > 11) {
-      currentMonthIndex.value = 0
-      currentYear.value++
-    }
-  }
-  generateCalendar()
-}
+// function changeMonth(direction: 'prev' | 'next') {
+//   if (direction === 'prev') {
+//     currentMonthIndex.value--
+//     if (currentMonthIndex.value < 0) {
+//       currentMonthIndex.value = 11
+//       currentYear.value--
+//     }
+//   }
+//   else {
+//     currentMonthIndex.value++
+//     if (currentMonthIndex.value > 11) {
+//       currentMonthIndex.value = 0
+//       currentYear.value++
+//     }
+//   }
+//   generateCalendar()
+// }
 
-// 回到今天
-function goToToday() {
-  const today = new Date()
-  currentYear.value = today.getFullYear()
-  currentMonthIndex.value = today.getMonth()
-  generateCalendar()
-}
+// // 回到今天
+// function goToToday() {
+//   const today = new Date()
+//   currentYear.value = today.getFullYear()
+//   currentMonthIndex.value = today.getMonth()
+//   generateCalendar()
+// }
 
 // 打开添加计划弹窗
 function openAddPlanDialog() {
@@ -307,71 +331,23 @@ await getPlanTimeList()
 
       <!-- 中间日历区域 -->
       <div class="plan-center">
-        <div class="calendar-header">
-          <h2>{{ currentYear }}年{{ currentMonthIndex + 1 }}月</h2>
-          <div class="calendar-nav">
-            <el-button :icon="ArrowLeft" @click="changeMonth('prev')" />
-            <el-button @click="goToToday">
-              今天
-            </el-button>
-            <el-button :icon="ArrowRight" @click="changeMonth('next')" />
-          </div>
-        </div>
-
-        <div class="calendar-grid">
-          <div class="calendar-day-header">
-            周日
-          </div>
-          <div class="calendar-day-header">
-            周一
-          </div>
-          <div class="calendar-day-header">
-            周二
-          </div>
-          <div class="calendar-day-header">
-            周三
-          </div>
-          <div class="calendar-day-header">
-            周四
-          </div>
-          <div class="calendar-day-header">
-            周五
-          </div>
-          <div class="calendar-day-header">
-            周六
-          </div>
-
-          <div
-            v-for="(day, index) in calendarDays"
-            :key="index"
-            class="calendar-day"
-            :class="{
-              'empty': day.isEmpty,
-              'today': day.isToday,
-              'has-tasks': day.hasTasks,
-            }"
-          >
-            <div v-if="!day.isEmpty" class="day-content">
-              <div class="day-number">
-                {{ day.day }}
-              </div>
-              <div v-if="day.hasTasks" class="task-indicator">
-                <el-tag size="small" type="success">
-                  <!-- {{ day.tasks.length }}个任务 -->
-                </el-tag>
-              </div>
-            </div>
-          </div>
-        </div>
+        <el-calendar v-model="value">
+          <template #date-cell="{ data: { date, day } }: { data: { date: Date, day: string } }">
+            <div>{{ date.getDate() }}</div>
+            <el-tag v-for="task in tasks.filter(v => dayjs(new Date(v.dueDate.join(','))).format('YYYY-MM-DD') === day).slice(0, 2)" :key="task.id" type="info" class="task-tag w-full bg-[#e3f2fd]">
+              {{ task.chapter }}
+            </el-tag>
+          </template>
+        </el-calendar>
       </div>
 
       <!-- 右侧任务列表 -->
       <div class="plan-right">
         <div class="section-header">
-          <h3>2025年9月4日任务</h3>
-          <el-button type="primary" size="small" :icon="Plus">
+          <h3>{{ dayjs(value).format('YYYY年M月D日') }}任务</h3>
+          <!-- <el-button type="primary" size="small" :icon="Plus">
             添加任务
-          </el-button>
+          </el-button> -->
         </div>
 
         <div class="task-list">
@@ -559,7 +535,7 @@ await getPlanTimeList()
 }
 
 .plan-left {
-  width: 300px;
+  width: 250px;
   overflow-y: auto;
 }
 
@@ -838,5 +814,11 @@ await getPlanTimeList()
 .plan-tree {
   --el-tree-node-hover-bg-color: hsl(var(--primary));
   --el-tree-node-content-height: 44px;
+}
+
+.task-tag :deep(.el-tag__content) {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
