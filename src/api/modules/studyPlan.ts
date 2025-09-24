@@ -55,6 +55,27 @@ export interface PlanTask {
   chapter: string
 }
 
+export interface TaskDetail {
+  id: number
+  chapter: string
+  time: string
+  title: string
+  progress: number
+  questions: {
+    id: number
+    question: string
+    options: string | null
+    userAnswer: string | null
+  }[]
+}
+
+export interface Question {
+  id: number
+  question: string
+  options: string | null
+  userAnswer: string
+}
+
 export default {
   // 获取仪表盘统计数据
   planTimeList: () => {
@@ -69,6 +90,13 @@ export default {
   // 根据时间获取任务详情
   byDate: (date: string) => {
     const userStore = useUserStore()
-    return api.get<PlanTask[]>('api/tasks/by-date', { params: { date }, headers: { 'X-User-Id': userStore.userId } })
+    return api.get<TaskDetail[]>('api/tasks/by-date', { params: { date }, headers: { 'X-User-Id': userStore.userId } })
+  },
+  questionAnswer: (data: TaskDetail['questions']) => {
+    const userStore = useUserStore()
+    return api.post('api/question/answer', {
+      data,
+      headers: { 'X-User-Id': userStore.userId },
+    })
   },
 }

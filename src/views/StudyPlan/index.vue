@@ -5,11 +5,12 @@ meta:
 </route>
 
 <script setup lang="ts">
-import type { PlanTask, PlanTime } from '@/api/modules/studyPlan'
+import type { PlanTask, PlanTime, Question, TaskDetail } from '@/api/modules/studyPlan'
 import { Calendar, Plus } from '@element-plus/icons-vue'
-import { dayjs, ElMessage, ElMessageBox } from 'element-plus'
+import { dayjs, ElMessage } from 'element-plus'
 import { reactive, ref } from 'vue'
 import api from '@/api/modules/studyPlan'
+import QuestionModal from './components/QuestionModal/index.vue'
 
 // 计划树数据
 const planTree = ref<PlanTime[]>([])
@@ -19,7 +20,7 @@ const currentNodeKey = ref(0)
 // 当前月份任务列表
 const tasks = ref<PlanTask[]>([])
 // 当前天任务列表
-const todayTasks = ref<PlanTask[]>([])
+const todayTasks = ref<TaskDetail[]>([])
 
 // 选择计划
 function selectPlan(data: PlanTime | PlanTime['plans'][number]) {
@@ -58,6 +59,7 @@ async function getPlan(plan: PlanTime['plans'][number]) {
 }
 
 watch(value, (newVal, oldVal) => {
+  getTasksbyDate()
   if (newVal.getMonth() !== oldVal.getMonth()) {
     for (const planTime of planTree.value) {
       for (const plan of planTime.plans) {
@@ -74,7 +76,6 @@ watch(value, (newVal, oldVal) => {
 // 根据时间获取任务详情
 async function getTasksbyDate() {
   const { data } = await api.byDate(dayjs(value.value).format('YYYY-MM-DD'))
-  // console.log(data)
   todayTasks.value = data || []
 }
 
@@ -89,34 +90,6 @@ interface CalendarDay {
 }
 
 const calendarDays = ref<CalendarDay[]>([])
-
-// 任务列表
-const taskList = ref([
-  {
-    id: 1,
-    title: '行测模拟练习',
-    time: '09:00-10:30',
-    content: '完成一套行测模拟题，包含言语理解、数量关系、判断推理和资料分析四个部分',
-    progress: 60,
-    status: 'in-progress',
-  },
-  {
-    id: 2,
-    title: '申论写作练习',
-    time: '14:00-15:30',
-    content: '根据给定材料，完成一篇800字左右的申论文章',
-    progress: 30,
-    status: 'in-progress',
-  },
-  {
-    id: 3,
-    title: '错题复习',
-    time: '19:00-20:00',
-    content: '复习本周错题本中的10道重点题目',
-    progress: 20,
-    status: 'in-progress',
-  },
-])
 
 // 添加计划弹窗
 const addPlanDialogVisible = ref(false)
@@ -140,31 +113,8 @@ const planForm = reactive({
 
 // 答题弹窗
 const questionDialogVisible = ref(false)
-const questions = ref([
-  {
-    id: 1,
-    title: '下列选项中，与"苹果"关系最不相似的是：',
-    options: [
-      { id: 'A', text: '香蕉' },
-      { id: 'B', text: '橙子' },
-      { id: 'C', text: '土豆' },
-      { id: 'D', text: '葡萄' },
-    ],
-    answer: 'C',
-  },
-  {
-    id: 2,
-    title: '某公司去年有员工830人，今年男员工人数比去年减少6%，女员工人数比去年增加5%，员工总数比去年增加3人。问今年男员工有多少人？',
-    options: [
-      { id: 'A', text: '329' },
-      { id: 'B', text: '350' },
-      { id: 'C', text: '371' },
-      { id: 'D', text: '504' },
-    ],
-    answer: 'A',
-  },
-])
-const selectedAnswers = ref<Record<number, string>>({})
+const chapter = ref('')
+const questions = ref<Question[]>([])
 
 // 生成日历数据
 function generateCalendar() {
@@ -253,35 +203,16 @@ function submitPlan() {
 }
 
 // 完成任务
-function completeTask() {
-  ElMessageBox.confirm('确定要完成任务吗？完成后将进行答题验证。', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    questionDialogVisible.value = true
-  })
+function completeTask(task: TaskDetail) {
+  questions.value = task.questions.map(v => ({ ...v, userAnswer: v.userAnswer || '' }))
+  chapter.value = task.chapter
+  questionDialogVisible.value = true
 }
 
 // 选择答案
 // function selectAnswer(questionId: number, answerId: string) {
 //   selectedAnswers.value[questionId] = answerId
 // }
-
-// 提交答案
-function submitAnswers() {
-  const totalQuestions = questions.value.length
-  const answeredQuestions = Object.keys(selectedAnswers.value).length
-
-  if (answeredQuestions < totalQuestions) {
-    ElMessage.warning('请完成所有题目')
-    return
-  }
-
-  ElMessage.success('答案已提交！任务完成')
-  questionDialogVisible.value = false
-  selectedAnswers.value = {}
-}
 
 // 初始化
 onMounted(() => {
@@ -352,24 +283,22 @@ await getPlanTimeList()
 
         <div class="task-list">
           <el-card
-            v-for="task in taskList"
+            v-for="task in todayTasks"
             :key="task.id"
             class="task-card"
-            :class="`status-${task.status}`"
           >
             <div class="task-header">
-              <h4>{{ task.title }}</h4>
+              <h4>{{ task.chapter }}</h4>
               <span class="task-time">{{ task.time }}</span>
             </div>
             <p class="task-content">
-              {{ task.content }}
+              {{ task.title }}
             </p>
             <div class="task-progress">
               <el-progress :percentage="task.progress" :show-text="false" />
-              <span class="progress-text">{{ task.progress }}%</span>
             </div>
             <div class="task-actions">
-              <el-button type="primary" size="small" @click="completeTask">
+              <el-button type="primary" @click="completeTask(task)">
                 完成任务
               </el-button>
             </div>
@@ -471,45 +400,11 @@ await getPlanTimeList()
       </template>
     </el-dialog>
 
-    <!-- 答题弹窗 -->
-    <el-dialog
-      v-model="questionDialogVisible"
-      title="完成任务：行测模拟练习"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <div class="question-container">
-        <div
-          v-for="(question, index) in questions"
-          :key="question.id"
-          class="question-item"
-        >
-          <h4>{{ index + 1 }}. {{ question.title }}</h4>
-          <!-- <el-radio-group
-            :model-value="selectedAnswers[question.id]"
-            @update:model-value="selectAnswer(question.id, $event)"
-          >
-            <el-radio
-              v-for="option in question.options"
-              :key="option.id"
-              :label="option.id"
-              class="option-item"
-            >
-              {{ option.id }}. {{ option.text }}
-            </el-radio>
-          </el-radio-group> -->
-        </div>
-      </div>
-
-      <template #footer>
-        <el-button @click="questionDialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="submitAnswers">
-          提交答案
-        </el-button>
-      </template>
-    </el-dialog>
+    <QuestionModal
+      v-model="questions"
+      v-model:show="questionDialogVisible"
+      :chapter="chapter"
+    />
   </div>
 </template>
 
@@ -654,19 +549,7 @@ await getPlanTimeList()
 }
 
 .task-card {
-  border-left: 4px solid #409eff;
-}
-
-.task-card.status-completed {
-  border-left-color: #67c23a;
-}
-
-.task-card.status-in-progress {
-  border-left-color: #e6a23c;
-}
-
-.task-card.status-overdue {
-  border-left-color: #f56c6c;
+  border-left: 4px solid hsl(var(--primary));
 }
 
 .task-header {
@@ -694,9 +577,6 @@ await getPlanTimeList()
 }
 
 .task-progress {
-  display: flex;
-  gap: 10px;
-  align-items: center;
   margin-bottom: 12px;
 }
 
@@ -760,39 +640,6 @@ await getPlanTimeList()
 
 .plan-form {
   margin-top: 20px;
-}
-
-.question-container {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.question-item {
-  padding-bottom: 20px;
-  margin-bottom: 30px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.question-item:last-child {
-  margin-bottom: 0;
-  border-bottom: none;
-}
-
-.question-item h4 {
-  margin-bottom: 16px;
-  color: #333;
-}
-
-.option-item {
-  display: block;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.option-item:hover {
-  background: #f0f9ff;
 }
 
 @media (width <= 1200px) {
