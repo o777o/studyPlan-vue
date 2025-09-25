@@ -1,19 +1,37 @@
 <script setup lang="ts">
 import type { Question } from '@/api/modules/studyPlan'
+import { toast } from 'vue-sonner'
 import api from '@/api/modules/studyPlan'
 
 defineProps<{ chapter: string }>()
+const emit = defineEmits<{
+  submitAnswers: []
+}>()
 const questions = defineModel<Question[]>({ default: [] })
 const questionDialogVisible = defineModel<boolean>('show')
 async function submitAnswers() {
-  const res = await api.questionAnswer(questions.value)
-  console.error(res)
+  const questionsDTO = questions.value.map(v => ({
+    id: v.id,
+    planId: v.planId,
+    taskId: v.taskId,
+    question: v.question,
+    options: v.options,
+    userAnswer: v.userAnswer,
+    correctAnswer: v.correctAnswer,
+  }))
+  if (questionsDTO.some(v => !v.userAnswer)) {
+    return toast.error('请完成所有题目')
+  }
+  await api.questionAnswer(questionsDTO)
+  toast.success('答案已提交！任务完成')
+  emit('submitAnswers')
+  questionDialogVisible.value = false
 }
 </script>
 
 <template>
   <!-- 答题弹窗 -->
-  <el-dialog v-model="questionDialogVisible" :title="`完成任务：${chapter}`" header-class="question-dialog font-bold" width="600px">
+  <el-dialog v-model="questionDialogVisible" :title="`完成任务：${chapter}`" header-class="question-dialog font-bold">
     <div class="question-container">
       <div
         v-for="(question, index) in questions"

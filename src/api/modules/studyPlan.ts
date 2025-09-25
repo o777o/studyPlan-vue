@@ -63,17 +63,23 @@ export interface TaskDetail {
   progress: number
   questions: {
     id: number
+    planId: number
+    taskId: number
     question: string
     options: string | null
     userAnswer: string | null
+    correctAnswer: string | null
   }[]
 }
 
 export interface Question {
   id: number
+  planId: number
+  taskId: number
   question: string
   options: string | null
   userAnswer: string
+  correctAnswer: string | null
 }
 
 export default {
@@ -94,9 +100,6 @@ export default {
   },
   questionAnswer: (data: TaskDetail['questions']) => {
     const userStore = useUserStore()
-    return api.post('api/question/answer', {
-      data,
-      headers: { 'X-User-Id': userStore.userId },
-    })
+    return api.post('api/question/answer', data, { headers: { 'X-User-Id': userStore.userId } })
   },
 }
