@@ -166,11 +166,6 @@ function openAddPlanDialog() {
   addPlanDialogVisible.value = true
 }
 
-// 选择计划类型
-// function selectPlanType(type: string) {
-//   planForm.type = type
-// }
-
 // 提交计划
 // function submitPlan() {
 //   ElMessage.success('学习计划已提交！')

@@ -82,6 +82,26 @@ export interface Question {
   correctAnswer: string | null
 }
 
+export enum PlanType {
+  government = 1,
+  postgrad = 2,
+  certificate = 3,
+}
+
+export interface StudyPlan {
+  id: number | null
+  startDate: string | null
+  endDate: string | null
+  subject: string | null
+  dailyStudyHours: number | null
+  availableDays: string | null
+  school: string | null
+  major: string | null
+  planType: PlanType | null
+  candidateType: 1 | 2 | null
+  progressDescription: string | null
+}
+
 export default {
   // 获取仪表盘统计数据
   planTimeList: () => {
@@ -101,5 +121,9 @@ export default {
   questionAnswer: (data: TaskDetail['questions']) => {
     const userStore = useUserStore()
     return api.post('api/question/answer', data, { headers: { 'X-User-Id': userStore.userId } })
+  },
+  updateStudyPlan: (data: StudyPlan) => {
+    const userStore = useUserStore()
+    return api.post('api/study-plans', data, { headers: { 'X-User-Id': userStore.userId } })
   },
 }
