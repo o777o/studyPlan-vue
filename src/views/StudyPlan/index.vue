@@ -32,15 +32,12 @@ function selectPlan(data: PlanTime | PlanTime['plans'][number]) {
 }
 
 // 当前月份
-const currentMonth = ref(new Date())
-const currentYear = ref(currentMonth.value.getFullYear())
-const currentMonthIndex = ref(currentMonth.value.getMonth())
 const value = ref(new Date())
 
 // 获取时间导航列表
 async function getPlanTimeList() {
   const res = await api.planTimeList()
-  planTree.value = res.data
+  planTree.value = res.data || []
   for (const planTime of planTree.value) {
     for (const plan of planTime.plans) {
       const currentMonth = plan.startDate[1]
@@ -80,59 +77,14 @@ async function getTasksbyDate() {
   todayTasks.value = data || []
 }
 
-// 日历数据
-interface CalendarDay {
-  day: number | string
-  isEmpty?: boolean
-  date?: Date
-  isToday?: boolean
-  hasTasks?: boolean
-  tasks?: string[]
-}
-
-const calendarDays = ref<CalendarDay[]>([])
-
 // 添加计划弹窗
 const addPlanDialogVisible = ref(false)
 
 // 答题弹窗
 const questionDialogVisible = ref(false)
 const chapter = ref('')
+const progress = ref(0)
 const questions = ref<Question[]>([])
-
-// 生成日历数据
-function generateCalendar() {
-  const year = currentYear.value
-  const month = currentMonthIndex.value
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const daysInMonth = lastDay.getDate()
-  const startDay = firstDay.getDay()
-
-  const days = []
-
-  // 添加空白日期
-  for (let i = 0; i < startDay; i++) {
-    days.push({ day: '', isEmpty: true })
-  }
-
-  // 添加月份日期
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day)
-    const isToday = date.toDateString() === new Date().toDateString()
-    const hasTasks = Math.random() > 0.7 // 模拟有任务的日期
-
-    days.push({
-      day,
-      date,
-      isToday,
-      hasTasks,
-      tasks: hasTasks ? ['行测练习', '申论写作'] : [],
-    })
-  }
-
-  calendarDays.value = days
-}
 
 // 切换月份
 // function changeMonth(direction: 'prev' | 'next') {
@@ -185,6 +137,7 @@ function openAddPlanDialog() {
 function completeTask(task: TaskDetail) {
   questions.value = task.questions.map(v => ({ ...v, userAnswer: v.userAnswer || '' }))
   chapter.value = task.chapter
+  progress.value = task.progress
   questionDialogVisible.value = true
 }
 
@@ -193,12 +146,13 @@ function completeTask(task: TaskDetail) {
 //   selectedAnswers.value[questionId] = answerId
 // }
 
-// 初始化
-onMounted(() => {
-  generateCalendar()
+api.existsPlan().then(({ data }) => {
+  if (!data) {
+    addPlanDialogVisible.value = true
+  }
 })
 
-await getPlanTimeList()
+getPlanTimeList()
 </script>
 
 <template>
@@ -290,10 +244,11 @@ await getPlanTimeList()
       v-model="questions"
       v-model:show="questionDialogVisible"
       :chapter="chapter"
+      :progress="progress"
       @submit-answers="getTasksbyDate"
     />
 
-    <AddPlanDialog v-model="addPlanDialogVisible" />
+    <AddPlanDialog v-model="addPlanDialogVisible" @add-study-plan="getPlanTimeList" />
   </div>
 </template>
 

@@ -8,6 +8,9 @@ meta:
 import type { DashboardStats } from '@/api/modules/dashboard'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import api from '@/api/modules/dashboard'
+import studyPlanApi from '@/api/modules/studyPlan'
+
+const router = useRouter()
 
 const versionType = ref('basic')
 watch(versionType, (val) => {
@@ -18,43 +21,36 @@ watch(versionType, (val) => {
 
 const dataCards = ref<DashboardStats['stats']>([])
 
-// const quickLinks = ref([
-//   { id: 1, icon: 'plus-circle', text: '新建学习计划', path: '/study-plan' },
-//   { id: 2, icon: 'calendar-check', text: '今日任务', path: '/study-plan' },
-//   { id: 3, icon: 'comment-dots', text: '树洞鸭聊天', path: '/chat' },
-//   { id: 4, icon: 'book', text: '错题本', path: '/wrong-questions' },
-// ])
-
-// const activities = ref([
-//   {
-//     id: 1,
-//     icon: 'check',
-//     title: '完成任务：行测模拟题',
-//     desc: '公务员考试行测模拟练习，得分85分',
-//     time: '10:20',
-//   },
-//   {
-//     id: 2,
-//     icon: 'book',
-//     title: '添加错题',
-//     desc: '在"逻辑推理"部分添加了2道错题',
-//     time: '09:45',
-//   },
-//   {
-//     id: 3,
-//     icon: 'comment',
-//     title: '与树洞鸭对话',
-//     desc: '咨询了关于学习压力的问题',
-//     time: '昨天 20:15',
-//   },
-//   {
-//     id: 4,
-//     icon: 'calendar',
-//     title: '调整学习计划',
-//     desc: '修改了"公务员考试"计划的时间安排',
-//     time: '昨天 18:30',
-//   },
-// ])
+const activities = ref([
+  {
+    id: 1,
+    icon: 'check',
+    title: '完成任务：行测模拟题',
+    desc: '公务员考试行测模拟练习，得分85分',
+    time: '10:20',
+  },
+  {
+    id: 2,
+    icon: 'book',
+    title: '添加错题',
+    desc: '在"逻辑推理"部分添加了2道错题',
+    time: '09:45',
+  },
+  {
+    id: 3,
+    icon: 'comment',
+    title: '与树洞鸭对话',
+    desc: '咨询了关于学习压力的问题',
+    time: '昨天 20:15',
+  },
+  {
+    id: 4,
+    icon: 'calendar',
+    title: '调整学习计划',
+    desc: '修改了"公务员考试"计划的时间安排',
+    time: '昨天 18:30',
+  },
+])
 
 // function open(url: string) {
 //   window.open(url, '_blank')
@@ -68,6 +64,11 @@ function navigateTo(path: string) {
 
 const { data: { stats } } = await api.dashboardStats()
 dataCards.value = stats || []
+
+const { data } = await studyPlanApi.existsPlan()
+if (!data) {
+  router.push({ name: 'StudyPlan' })
+}
 </script>
 
 <template>
@@ -140,80 +141,32 @@ dataCards.value = stats || []
         </div>
       </div>
 
-      <!-- 最近操作记录 -->
-      <!-- <div class="card">
+      <div class="card recent-activities">
         <div class="card-header">
-          <div class="card-title">
+          <h3 class="card-title">
             最近操作记录
-          </div>
+          </h3>
+          <button class="view-all" @click="navigateTo('/activities')">
+            查看全部
+          </button>
         </div>
         <ul class="activity-list">
-          <li class="activity-item">
+          <li v-for="activity in activities" :key="activity.id" class="activity-item">
             <div class="activity-icon">
-              <i class="fas fa-check" />
+              <FontAwesomeIcon :icon="['fas', activity.icon]" style="color: #000;" />
             </div>
             <div class="activity-content">
-              <div class="activity-title">
-                完成任务：行测模拟题
-              </div>
-              <div class="activity-desc">
-                公务员考试行测模拟练习，得分85分
-              </div>
+              <h4 class="activity-title">
+                {{ activity.title }}
+              </h4>
+              <p class="activity-desc">
+                {{ activity.desc }}
+              </p>
             </div>
-            <div class="activity-time">
-              10:20
-            </div>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">
-              <i class="fas fa-book" />
-            </div>
-            <div class="activity-content">
-              <div class="activity-title">
-                添加错题
-              </div>
-              <div class="activity-desc">
-                在"逻辑推理"部分添加了2道错题
-              </div>
-            </div>
-            <div class="activity-time">
-              09:45
-            </div>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">
-              <i class="fas fa-comment" />
-            </div>
-            <div class="activity-content">
-              <div class="activity-title">
-                与树洞鸭对话
-              </div>
-              <div class="activity-desc">
-                咨询了关于学习压力的问题
-              </div>
-            </div>
-            <div class="activity-time">
-              昨天 20:15
-            </div>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">
-              <i class="fas fa-calendar" />
-            </div>
-            <div class="activity-content">
-              <div class="activity-title">
-                调整学习计划
-              </div>
-              <div class="activity-desc">
-                修改了"公务员考试"计划的时间安排
-              </div>
-            </div>
-            <div class="activity-time">
-              昨天 18:30
-            </div>
+            <span class="activity-time">{{ activity.time }}</span>
           </li>
         </ul>
-      </div> -->
+      </div>
     </div>
     <!-- <div class="w-full flex flex-col gap-4 px-4 xl-flex-row">
       <div v-for="item in quickLinks" :key="item.id" class="quick-link-card">
@@ -388,5 +341,87 @@ dataCards.value = stats || []
   font-size: 14px;
   font-weight: 500;
   text-align: center;
+}
+
+.recent-activities .card-header {
+  margin-bottom: 0;
+}
+
+.view-all {
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary-dark);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.view-all:hover {
+  background-color: var(--primary-color);
+}
+
+.activity-list {
+  padding: 0;
+  margin: 0;
+  margin-top: 16px;
+  list-style: none;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 16px;
+  color: var(--primary-dark);
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  margin: 0 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.activity-desc {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.activity-time {
+  margin-left: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 </style>

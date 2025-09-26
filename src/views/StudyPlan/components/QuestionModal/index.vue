@@ -3,7 +3,7 @@ import type { Question } from '@/api/modules/studyPlan'
 import { toast } from 'vue-sonner'
 import api from '@/api/modules/studyPlan'
 
-defineProps<{ chapter: string }>()
+defineProps<{ chapter: string, progress: number }>()
 const emit = defineEmits<{
   submitAnswers: []
 }>()
@@ -47,6 +47,10 @@ async function submitAnswers() {
             :key="option"
             :value="option[0]"
             class="mb-2 w-full"
+            :class="{
+              correct: progress && option[0] === question.correctAnswer,
+              wrong: progress && option[0] === question.userAnswer && question.userAnswer !== question.correctAnswer,
+            }"
           >
             {{ option }}
           </el-radio-button>
@@ -185,6 +189,14 @@ async function submitAnswers() {
 .question-container :deep(.el-radio-button__inner:hover) {
   color: var(--el-text-color-regular);
   background-color: hsl(var(--primary));
+}
+
+.question-container .correct :deep(.el-radio-button__inner) {
+  background-color: var(--el-color-success) !important;
+}
+
+.question-container .wrong :deep(.el-radio-button__inner) {
+  background-color: var(--el-color-danger) !important;
 }
 
 :deep(.question-dialog .el-dialog__title) {

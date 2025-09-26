@@ -30,46 +30,46 @@ const routes: RouteRecordRaw = {
         title: '学习计划',
       },
     },
+    // {
+    //   path: 'level2',
+    //   name: 'multilevelMenuExample2',
+    //   component: () => import('@/views/multilevel_menu_example/page.vue'),
+    //   meta: {
+    //     title: '任务日历',
+    //   },
+    // },
+    // {
+    //   path: 'level2',
+    //   name: 'multilevelMenuExample2',
+    //   component: () => import('@/views/multilevel_menu_example/page.vue'),
+    //   meta: {
+    //     title: '任务管理',
+    //   },
+    // },
     {
-      path: 'level2',
-      name: 'multilevelMenuExample2',
-      component: () => import('@/views/multilevel_menu_example/page.vue'),
-      meta: {
-        title: '任务日历',
-      },
-    },
-    {
-      path: 'level2',
-      name: 'multilevelMenuExample2',
-      component: () => import('@/views/multilevel_menu_example/page.vue'),
-      meta: {
-        title: '任务管理',
-      },
-    },
-    {
-      path: 'level2',
-      name: 'multilevelMenuExample2',
-      component: () => import('@/views/multilevel_menu_example/page.vue'),
+      path: 'chat',
+      name: 'Chat',
+      component: () => import('@/views/Chat/index.vue'),
       meta: {
         title: '树洞鸭聊天',
       },
     },
     {
-      path: 'level2',
-      name: 'multilevelMenuExample2',
-      component: () => import('@/views/multilevel_menu_example/page.vue'),
+      path: 'wrongQuestions',
+      name: 'WrongQuestions',
+      component: () => import('@/views/WrongQuestions/index.vue'),
       meta: {
         title: '错题本',
       },
     },
-    {
-      path: 'level2',
-      name: 'multilevelMenuExample2',
-      component: () => import('@/views/multilevel_menu_example/page.vue'),
-      meta: {
-        title: '学习分析',
-      },
-    },
+    // {
+    //   path: 'level2',
+    //   name: 'multilevelMenuExample2',
+    //   component: () => import('@/views/multilevel_menu_example/page.vue'),
+    //   meta: {
+    //     title: '学习分析',
+    //   },
+    // },
   ],
 }
 

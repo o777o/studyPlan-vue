@@ -83,9 +83,9 @@ export interface Question {
 }
 
 export enum PlanType {
-  government = 1,
-  postgrad = 2,
-  certificate = 3,
+  government = 0,
+  postgrad = 1,
+  certificate = 2,
 }
 
 export interface StudyPlan {
@@ -98,7 +98,7 @@ export interface StudyPlan {
   school: string | null
   major: string | null
   planType: PlanType | null
-  candidateType: 1 | 2 | null
+  candidateType: 0 | 1 | null
   progressDescription: string | null
 }
 
@@ -125,5 +125,9 @@ export default {
   updateStudyPlan: (data: StudyPlan) => {
     const userStore = useUserStore()
     return api.post('api/study-plans', data, { headers: { 'X-User-Id': userStore.userId } })
+  },
+  existsPlan: () => {
+    const userStore = useUserStore()
+    return api.get<boolean>('api/study-plans/existsPlan', { headers: { 'X-User-Id': userStore.userId } })
   },
 }

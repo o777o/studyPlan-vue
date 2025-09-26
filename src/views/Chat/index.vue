@@ -5,8 +5,8 @@ meta:
 </route>
 
 <script setup lang="ts">
-import { Bot, Send } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { Send } from 'lucide-vue-next'
 import { nextTick, ref } from 'vue'
 
 // 聊天消息列表
@@ -107,8 +107,8 @@ function scrollToBottom() {
 }
 
 // 处理回车键发送
-function handleKeyPress(event: KeyboardEvent) {
-  if (event.key === 'Enter' && !event.shiftKey) {
+function handleKeyPress(event: KeyboardEvent | Event) {
+  if ((event as KeyboardEvent).key === 'Enter' && !(event as KeyboardEvent).shiftKey) {
     event.preventDefault()
     sendMessage()
   }
