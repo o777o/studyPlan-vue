@@ -1,3 +1,4 @@
+import type { Question } from '../modules/studyPlan'
 import api from '../index'
 
 export interface Pagination {
@@ -8,7 +9,7 @@ export interface Pagination {
 }
 
 export interface WrongQuestion {
-  list: []
+  list: Question[]
 }
 
 export default {
@@ -19,7 +20,7 @@ export default {
     subject: string
   }) => {
     const userStore = useUserStore()
-    return api.get<(Pagination & WrongQuestion)[]>('api/wrong-answers', { params, headers: { 'X-User-Id': userStore.userId } })
+    return api.get<Pagination & WrongQuestion>('api/wrong-answers', { params, headers: { 'X-User-Id': userStore.userId } })
   },
   // 获取科目列表
   getSubjects: () => {

@@ -69,6 +69,7 @@ export interface TaskDetail {
     options: string | null
     userAnswer: string | null
     correctAnswer: string | null
+    analysis: string | null
   }[]
 }
 
@@ -80,6 +81,7 @@ export interface Question {
   options: string | null
   userAnswer: string
   correctAnswer: string | null
+  analysis: string | null
 }
 
 export enum PlanType {

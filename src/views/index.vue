@@ -58,7 +58,6 @@ const activities = ref([
 
 // 跳转到指定页面
 function navigateTo(path: string) {
-  const router = useRouter()
   router.push(path)
 }
 
@@ -123,19 +122,19 @@ if (!data) {
 
       <!-- 快捷入口 -->
       <div class="quick-links">
-        <div class="quick-link">
+        <div class="quick-link" @click="navigateTo('/multilevel_menu_example/studyPlan')">
           <FontAwesomeIcon :icon="['fas', 'fa-plus-circle']" size="xl" />
           <span>新建学习计划</span>
         </div>
-        <div class="quick-link" @click="navigateTo('/study-plan')">
+        <div class="quick-link" @click="navigateTo('/multilevel_menu_example/studyPlan')">
           <FontAwesomeIcon :icon="['fas', 'fa-calendar-check']" size="xl" />
           <span>今日任务</span>
         </div>
-        <div class="quick-link" @click="navigateTo('/study-plan')">
+        <div class="quick-link" @click="navigateTo('/multilevel_menu_example/chat')">
           <FontAwesomeIcon :icon="['fas', 'fa-comment-dots']" size="xl" />
           <span>树洞鸭聊天</span>
         </div>
-        <div class="quick-link" @click="navigateTo('/study-plan')">
+        <div class="quick-link" @click="navigateTo('/multilevel_menu_example/wrongQuestions')">
           <FontAwesomeIcon :icon="['fas', 'fa-book']" size="xl" />
           <span>错题本</span>
         </div>

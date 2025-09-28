@@ -18,6 +18,7 @@ async function submitAnswers() {
     options: v.options,
     userAnswer: v.userAnswer,
     correctAnswer: v.correctAnswer,
+    analysis: v.analysis,
   }))
   if (questionsDTO.some(v => !v.userAnswer)) {
     return toast.error('请完成所有题目')
