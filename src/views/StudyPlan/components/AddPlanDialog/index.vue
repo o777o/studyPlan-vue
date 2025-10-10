@@ -2,6 +2,7 @@
 import type { FormInstance, FormRules } from 'element-plus'
 import type { StudyPlan } from '@/api/modules/studyPlan'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { ElMessageBox } from 'element-plus'
 import { toast } from 'vue-sonner'
 import api, { PlanType } from '@/api/modules/studyPlan'
 
@@ -10,6 +11,7 @@ const emit = defineEmits<{
 }>()
 
 const addPlanDialogVisible = defineModel({ default: false })
+
 const planForm = reactive<StudyPlan>({
   id: null,
   startDate: null,
@@ -24,6 +26,13 @@ const planForm = reactive<StudyPlan>({
   progressDescription: null,
 })
 const planFormRef = useTemplateRef<FormInstance>('planFormRef')
+
+watch(addPlanDialogVisible, (val) => {
+  if (!val) {
+    planFormRef.value?.resetFields()
+    planForm.planType = null
+  }
+})
 
 const rules = reactive<FormRules<StudyPlan>>({
   school: { required: true, message: '请输入', trigger: 'blur' },
@@ -60,17 +69,35 @@ function disabledEndDate(time: Date) {
 
 async function updateStudyPlan() {
   await planFormRef.value?.validate()
-  await api.updateStudyPlan(planForm)
-  toast.success('学习计划已提交！')
-  addPlanDialogVisible.value = false
-  emit('addStudyPlan')
+  try {
+    await api.updateStudyPlan(planForm)
+    toast.success('学习计划已提交！')
+    addPlanDialogVisible.value = false
+    emit('addStudyPlan')
+  }
+  catch (error) {
+    const e = error as any
+    if (e.status === 500 && e.response?.data?.message === '系统异常: 学习计划已存在,请删除后再创建') {
+      await ElMessageBox.confirm(
+        '学习计划已存在,是否删除当前学习计划？',
+        '提示',
+        {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning',
+        },
+      )
+      await api.deleteStudyPlans()
+      updateStudyPlan()
+    }
+  }
 }
 </script>
 
 <template>
   <!-- 添加计划弹窗 -->
   <el-dialog v-model="addPlanDialogVisible" title="添加学习计划" header-class="font-bold">
-    <div v-if="planForm.planType === null" class="plan-type-selection">
+    <div v-show="planForm.planType === null" class="plan-type-selection">
       <h4>请选择学习计划类型</h4>
       <div class="plan-types">
         <el-card class="plan-type-card" @click="selectPlanType(PlanType.government)">
@@ -94,7 +121,7 @@ async function updateStudyPlan() {
       </div>
     </div>
 
-    <div v-else class="plan-form">
+    <div v-show="planForm.planType !== null" class="plan-form">
       <el-form ref="planFormRef" :model="planForm" label-position="top" :rules="rules">
         <template v-if="planForm.planType === PlanType.government">
           <el-form-item label="目标城市" prop="school">
@@ -183,7 +210,7 @@ async function updateStudyPlan() {
 
     <template v-if="planForm.planType !== null" #footer>
       <div class="flex justify-between">
-        <el-button @click="planForm.planType = null">
+        <el-button @click="planForm.planType = null, planFormRef?.resetFields()">
           上一步
         </el-button>
         <el-button type="primary" @click="updateStudyPlan">

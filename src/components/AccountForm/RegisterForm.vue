@@ -25,14 +25,14 @@ const loading = ref(false)
 const form = useForm({
   validationSchema: toTypedSchema(
     z.object({
-      account: z.string().min(1, '请输入用户名').refine(async (val) => {
+      account: z.string().min(1, '请输入用户昵称').refine(async (val) => {
         if (!val) {
           return false
         }
         // 异步接口校验用户名是否存在
         const { data } = await api.checkUsername(val)
         return !data
-      }, { message: '用户名已存在' }),
+      }, { message: '用户昵称已存在' }),
       phone: z.string().regex(phoneRegex, '请输入有效的手机号').refine(async (val) => {
         if (!val || !phoneRegex.test(val)) {
           return false
@@ -107,44 +107,21 @@ async function handleSendCaptcha() {
         <h3 class="text-4xl color-[var(--el-text-color-primary)] font-bold">
           探索从这里开始 🚀
         </h3>
-        <p class="text-sm text-muted-foreground lg:text-base">
+        <!-- <p class="text-sm text-muted-foreground lg:text-base">
           演示系统未提供该功能
-        </p>
+        </p> -->
       </div>
       <FormField v-slot="{ componentField, errors }" name="account">
         <FormItem class="relative pb-6 space-y-0">
           <FormControl>
             <FaInput
               type="text"
-              placeholder="请输入用户名"
+              placeholder="请输入用户昵称"
               class="w-full"
               :class="errors.length && 'border-destructive'"
               v-bind="componentField"
               @blur="form.validateField('account')"
             />
-          </FormControl>
-          <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
-            <FormMessage class="absolute bottom-1 text-xs" />
-          </Transition>
-        </FormItem>
-      </FormField>
-      <FormField v-slot="{ componentField, value, errors }" name="password">
-        <FormItem class="relative pb-6 space-y-0">
-          <FormControl>
-            <FaInput type="password" placeholder="请输入密码" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
-          </FormControl>
-          <FormDescription>
-            <FaPasswordStrength :password="value" class="mt-2" />
-          </FormDescription>
-          <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
-            <FormMessage class="absolute bottom-1 text-xs" />
-          </Transition>
-        </FormItem>
-      </FormField>
-      <FormField v-slot="{ componentField, errors }" name="checkPassword">
-        <FormItem class="relative pb-6 space-y-0">
-          <FormControl>
-            <FaInput type="password" placeholder="请再次输入密码" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
           </FormControl>
           <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
             <FormMessage class="absolute bottom-1 text-xs" />
@@ -178,6 +155,29 @@ async function handleSendCaptcha() {
           {{ countdown === 0 ? '发送验证码' : `${countdown} 秒后可重新发送` }}
         </FaButton>
       </div>
+      <FormField v-slot="{ componentField, value, errors }" name="password">
+        <FormItem class="relative pb-6 space-y-0">
+          <FormControl>
+            <FaInput type="password" placeholder="请输入密码" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
+          </FormControl>
+          <FormDescription>
+            <FaPasswordStrength :password="value" class="mt-2" />
+          </FormDescription>
+          <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
+            <FormMessage class="absolute bottom-1 text-xs" />
+          </Transition>
+        </FormItem>
+      </FormField>
+      <FormField v-slot="{ componentField, errors }" name="checkPassword">
+        <FormItem class="relative pb-6 space-y-0">
+          <FormControl>
+            <FaInput type="password" placeholder="请再次输入密码" class="w-full" :class="errors.length && 'border-destructive'" v-bind="componentField" />
+          </FormControl>
+          <Transition enter-active-class="transition-opacity" enter-from-class="opacity-0" leave-active-class="transition-opacity" leave-to-class="opacity-0">
+            <FormMessage class="absolute bottom-1 text-xs" />
+          </Transition>
+        </FormItem>
+      </FormField>
       <FaButton :loading="loading" size="lg" class="mt-4 w-full" type="submit">
         注册
       </FaButton>

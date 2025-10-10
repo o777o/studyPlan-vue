@@ -132,4 +132,12 @@ export default {
     const userStore = useUserStore()
     return api.get<boolean>('api/study-plans/existsPlan', { headers: { 'X-User-Id': userStore.userId } })
   },
+  updateTaskStatus: (id: number) => {
+    const userStore = useUserStore()
+    return api.put<boolean>(`api/tasks/${id}/status?status=2`, null, { headers: { 'X-User-Id': userStore.userId } })
+  },
+  deleteStudyPlans: () => {
+    const userStore = useUserStore()
+    return api.delete<boolean>('api/study-plans/all', { headers: { 'X-User-Id': userStore.userId } })
+  },
 }

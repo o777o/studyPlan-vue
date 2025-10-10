@@ -7,9 +7,9 @@ defineOptions({
 })
 
 const settingsStore = useSettingsStore()
-const menuStore = useMenuStore()
+// const menuStore = useMenuStore()
 
-const { switchTo } = useMenu()
+// const { switchTo } = useMenu()
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const { switchTo } = useMenu()
         <component :is="useSlots('header-after-logo')" />
         <FaScrollArea :scrollbar="false" mask horizontal gradient-color="var(--g-header-bg)" class="menu-container h-full flex-1">
           <!-- 顶部模式 -->
-          <div class="menu h-full flex of-hidden transition-all">
+          <!-- <div class="menu h-full flex of-hidden transition-all">
             <template v-for="(item, index) in menuStore.allMenus" :key="index">
               <div
                 class="menu-item relative mx-1 py-2 transition-all" :class="{
@@ -42,7 +42,7 @@ const { switchTo } = useMenu()
                 </div>
               </div>
             </template>
-          </div>
+          </div> -->
         </FaScrollArea>
         <component :is="useSlots('header-after-menu')" />
         <div class="flex-center">

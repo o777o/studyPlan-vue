@@ -23,7 +23,7 @@ async function submitAnswers() {
   if (questionsDTO.some(v => !v.userAnswer)) {
     return toast.error('请完成所有题目')
   }
-  await api.questionAnswer(questionsDTO)
+  await Promise.all([api.questionAnswer(questionsDTO), api.updateTaskStatus(questions.value[0].taskId)])
   toast.success('答案已提交！任务完成')
   emit('submitAnswers')
   questionDialogVisible.value = false
@@ -49,7 +49,7 @@ async function submitAnswers() {
             :value="option[0]"
             class="mb-2 w-full"
             :class="{
-              correct: progress && option[0] === question.correctAnswer,
+              correct: progress && option[0] === question.correctAnswer && question.userAnswer === question.correctAnswer,
               wrong: progress && option[0] === question.userAnswer && question.userAnswer !== question.correctAnswer,
             }"
           >

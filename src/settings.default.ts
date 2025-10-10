@@ -41,7 +41,7 @@ const globalSettingsDefault: RecursiveRequired<Settings.all> = {
   toolbar: {
     enable: true,
     breadcrumb: true,
-    navSearch: true,
+    navSearch: false,
     fullscreen: false,
     pageReload: false,
     colorScheme: false,

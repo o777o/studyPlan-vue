@@ -252,7 +252,7 @@ watchEffect(getWrongAnswers)
           </div>
           <div v-show="question.isExpanded" class="question-answer">
             <strong>正确答案：</strong> {{ question.correctAnswer }}<br>
-            <strong>解析：</strong> {{ question.analysis }}
+            <!-- <strong>解析：</strong> {{ question.analysis }} -->
           </div>
         </div>
       </div>

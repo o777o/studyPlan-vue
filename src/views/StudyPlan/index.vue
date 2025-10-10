@@ -36,6 +36,7 @@ const value = ref(new Date())
 
 // 获取时间导航列表
 async function getPlanTimeList() {
+  planTree.value = []
   const res = await api.planTimeList()
   planTree.value = res.data || []
   for (const planTime of planTree.value) {
